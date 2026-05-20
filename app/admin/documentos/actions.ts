@@ -28,7 +28,7 @@ async function deleteStoredFile(filePath: string | null | undefined) {
   }
 }
 
-export async function createDocumentAction(formData: FormData) {
+export async function createDocumentAction(formData: FormData): Promise<void> {
   const user = await requireAdmin();
 
   const title = cleanValue(formData.get("title"));
@@ -137,14 +137,9 @@ export async function createDocumentAction(formData: FormData) {
   });
 
   revalidateAdminAndUserViews();
-
-  return {
-    ok: true,
-    message: "Normativa cargada correctamente.",
-  };
 }
 
-export async function updateDocumentAction(formData: FormData) {
+export async function updateDocumentAction(formData: FormData): Promise<void> {
   await requireAdmin();
 
   const id = cleanValue(formData.get("id"));
@@ -180,7 +175,7 @@ export async function updateDocumentAction(formData: FormData) {
 
   await prisma.news.create({
     data: {
-      title: `Se actualizó una normativa`,
+      title: "Se actualizó una normativa",
       description: `Se modificó la normativa "${document.title}" de ${
         document.healthInsurance?.name ?? "una obra social"
       }.`,
@@ -189,14 +184,9 @@ export async function updateDocumentAction(formData: FormData) {
   });
 
   revalidateAdminAndUserViews();
-
-  return {
-    ok: true,
-    message: "Normativa actualizada correctamente.",
-  };
 }
 
-export async function deleteDocumentAction(formData: FormData) {
+export async function deleteDocumentAction(formData: FormData): Promise<void> {
   await requireAdmin();
 
   const id = cleanValue(formData.get("id"));
@@ -252,7 +242,7 @@ export async function deleteDocumentAction(formData: FormData) {
 
   await prisma.news.create({
     data: {
-      title: `Se eliminó una normativa`,
+      title: "Se eliminó una normativa",
       description: `Se eliminó la normativa "${document.title}" de ${
         document.healthInsurance?.name ?? "una obra social"
       }.`,
@@ -261,9 +251,4 @@ export async function deleteDocumentAction(formData: FormData) {
   });
 
   revalidateAdminAndUserViews();
-
-  return {
-    ok: true,
-    message: "Normativa eliminada correctamente.",
-  };
 }
