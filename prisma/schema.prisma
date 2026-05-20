@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+enum QueryFeedback {
+  USEFUL
+  NOT_USEFUL
+  NO_FEEDBACK
+}
+
+model Branch {
+  id        String   @id @default(cuid())
+  name      String
+  code      String?  @unique
+  address   String?
+  city      String?
+  province  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users   User[]
+  queries Query[]
+
+  @@map("branches")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  role         UserRole @default(USER)
+  branchId     String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  branch    Branch?    @relation(fields: [branchId], references: [id])
+  documents Document[]
+  queries   Query[]
+
+  @@map("users")
+}
+
+model HealthInsurance {
+  id          String   @id @default(cuid())
+  name        String
+  code        String?
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  documents      Document[]
+  queries        Query[]
+  documentChunks DocumentChunk[]
+
+  @@map("health_insurances")
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  fileName  String
+  filePath  String
+  mimeType  String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  uploadedById      String
+  healthInsuranceId String?
+
+  uploadedBy      User             @relation(fields: [uploadedById], references: [id])
+  healthInsurance HealthInsurance? @relation(fields: [healthInsuranceId], references: [id])
+
+  pages        DocumentPage[]
+  chunks       DocumentChunk[]
+  queryResults QueryResult[]
+
+  @@map("documents")
+}
+
+model DocumentPage {
+  id         String   @id @default(cuid())
+  pageNumber Int
+  content    String
+  createdAt  DateTime @default(now())
+
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  chunks DocumentChunk[]
+
+  @@unique([documentId, pageNumber])
+  @@map("document_pages")
+}
+
+model DocumentChunk {
+  id                String   @id @default(cuid())
+  content           String
+  normalizedContent String
+  keywords          String[] @default([])
+  scoreBase         Int      @default(0)
+  createdAt         DateTime @default(now())
+
+  documentId        String
+  pageId            String?
+  healthInsuranceId String
+
+  document        Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  page            DocumentPage?   @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  healthInsurance HealthInsurance @relation(fields: [healthInsuranceId], references: [id])
+
+  queryResults QueryResult[]
+
+  @@map("document_chunks")
+}
+
+model Query {
+  id               String        @id @default(cuid())
+  originalText     String
+  normalizedText   String
+  detectedCategory String?
+  resultFound      Boolean       @default(false)
+  topScore         Int           @default(0)
+  feedback         QueryFeedback @default(NO_FEEDBACK)
+  createdAt        DateTime      @default(now())
+
+  userId                    String
+  branchId                  String?
+  detectedHealthInsuranceId String?
+
+  user                    User             @relation(fields: [userId], references: [id])
+  branch                  Branch?          @relation(fields: [branchId], references: [id])
+  detectedHealthInsurance HealthInsurance? @relation(fields: [detectedHealthInsuranceId], references: [id])
+
+  results QueryResult[]
+
+  @@map("queries")
+}
+
+model QueryResult {
+  id        String   @id @default(cuid())
+  score     Int
+  excerpt   String
+  createdAt DateTime @default(now())
+
+  queryId    String
+  documentId String
+  chunkId    String?
+
+  query    Query          @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  document Document       @relation(fields: [documentId], references: [id])
+  chunk    DocumentChunk? @relation(fields: [chunkId], references: [id], onDelete: SetNull)
+
+  @@map("query_results")
+}
+
+model News {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("news")
+}
