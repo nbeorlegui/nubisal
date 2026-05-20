@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useActionState } from "react";
-import { Eye, LockKeyhole, UserRound, ShieldCheck } from "lucide-react";
+import { Eye, LockKeyhole, ShieldCheck, UserRound } from "lucide-react";
 import { loginAction, type LoginState } from "./actions";
 
 const initialState: LoginState = {};
@@ -11,10 +11,10 @@ export default function LoginPage() {
   const [state, formAction, pending] = useActionState(loginAction, initialState);
 
   return (
-    <main className="h-screen overflow-hidden bg-[#f3f7fb] text-[#061f3d]">
-      <div className="flex h-full flex-col items-center justify-center px-5 py-4">
-        <section className="grid h-[570px] w-full max-w-6xl overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.09)] lg:grid-cols-2">
-          <aside className="relative hidden overflow-hidden border-r border-slate-200 bg-white px-12 py-8 lg:flex lg:items-center lg:justify-center">
+    <main className="min-h-dvh w-full overflow-x-hidden overflow-y-auto bg-[#f3f7fb] px-4 py-5 text-[#061f3d] sm:flex sm:items-center sm:justify-center sm:px-5 sm:py-6">
+      <div className="mx-auto flex min-h-[calc(100dvh-40px)] w-full max-w-6xl flex-col items-center justify-center gap-4 sm:min-h-0">
+        <section className="grid w-full max-w-[520px] overflow-hidden rounded-[26px] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.09)] lg:max-w-6xl lg:grid-cols-2">
+          <aside className="relative hidden min-h-[570px] overflow-hidden border-r border-slate-200 bg-white px-12 py-8 lg:flex lg:items-center lg:justify-center">
             <div className="absolute right-12 top-14 opacity-45">
               <div className="grid grid-cols-5 gap-2">
                 {Array.from({ length: 20 }).map((_, index) => (
@@ -26,7 +26,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="absolute left-16 bottom-20 h-10 w-10 rounded-full bg-[#dff1fb]" />
+            <div className="absolute bottom-20 left-16 h-10 w-10 rounded-full bg-[#dff1fb]" />
 
             <div className="relative z-10 flex w-full max-w-[420px] flex-col items-center text-center">
               <div className="flex w-full justify-center">
@@ -59,16 +59,16 @@ export default function LoginPage() {
             </div>
           </aside>
 
-          <section className="flex h-full items-center justify-center px-6 py-6 sm:px-10">
+          <section className="flex w-full items-center justify-center px-5 py-7 sm:px-8 sm:py-8 lg:min-h-[570px] lg:px-10">
             <div className="w-full max-w-[430px]">
-              <div className="mb-8 flex flex-col items-center lg:hidden">
+              <div className="mb-6 flex flex-col items-center lg:hidden">
                 <Image
                   src="/brand/nubisal-cloud.png"
                   alt="Nubisal"
                   width={150}
                   height={120}
                   priority
-                  className="h-auto w-[120px]"
+                  className="h-auto w-[96px] sm:w-[120px]"
                 />
 
                 <Image
@@ -77,12 +77,12 @@ export default function LoginPage() {
                   width={190}
                   height={60}
                   priority
-                  className="mt-3 h-auto w-[165px]"
+                  className="mt-3 h-auto w-[150px] sm:w-[165px]"
                 />
               </div>
 
-              <div className="mb-7">
-                <h2 className="text-4xl font-semibold tracking-[-0.035em] text-[#061f3d]">
+              <div className="mb-6 sm:mb-7">
+                <h2 className="text-[34px] font-semibold leading-tight tracking-[-0.035em] text-[#061f3d] sm:text-4xl">
                   Iniciar sesión
                 </h2>
 
@@ -91,9 +91,9 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              <form action={formAction} className="space-y-5">
+              <form action={formAction} className="space-y-4 sm:space-y-5">
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-[#061f3d]">
+                  <label className="mb-2 block text-base font-medium text-[#061f3d] md:text-sm">
                     Usuario
                   </label>
 
@@ -105,13 +105,13 @@ export default function LoginPage() {
                       type="text"
                       autoComplete="username"
                       placeholder="Ingresá tu usuario"
-                      className="h-12 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-sm text-[#061f3d] outline-none transition placeholder:text-slate-400 focus:border-[#061f3d] focus:ring-4 focus:ring-blue-50"
+                      className="h-12 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-4 text-base text-[#061f3d] outline-none transition placeholder:text-slate-400 focus:border-[#061f3d] focus:ring-4 focus:ring-blue-50 md:text-sm"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-[#061f3d]">
+                  <label className="mb-2 block text-base font-medium text-[#061f3d] md:text-sm">
                     Contraseña
                   </label>
 
@@ -123,7 +123,7 @@ export default function LoginPage() {
                       type="password"
                       autoComplete="current-password"
                       placeholder="Ingresá tu contraseña"
-                      className="h-12 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-12 text-sm text-[#061f3d] outline-none transition placeholder:text-slate-400 focus:border-[#061f3d] focus:ring-4 focus:ring-blue-50"
+                      className="h-12 w-full rounded-xl border border-slate-300 bg-white pl-12 pr-12 text-base text-[#061f3d] outline-none transition placeholder:text-slate-400 focus:border-[#061f3d] focus:ring-4 focus:ring-blue-50 md:text-sm"
                     />
 
                     <Eye className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
@@ -131,7 +131,7 @@ export default function LoginPage() {
                 </div>
 
                 {state.error ? (
-                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-base text-red-700 md:text-sm">
                     {state.error}
                   </div>
                 ) : null}
@@ -139,28 +139,34 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={pending}
-                  className="h-12 w-full rounded-xl bg-[#062f73] px-5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(6,47,115,0.20)] transition hover:bg-[#05275f] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="h-12 w-full rounded-xl bg-[#062f73] px-5 text-base font-semibold text-white shadow-[0_14px_30px_rgba(6,47,115,0.20)] transition hover:bg-[#05275f] disabled:cursor-not-allowed disabled:opacity-60 md:text-sm"
                 >
                   {pending ? "Validando..." : "Ingresar"}
                 </button>
               </form>
 
-              <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-500">
+              <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-500 sm:mt-6">
                 <p>
-                  Admin: <span className="font-medium text-slate-700">admin</span> / admin123
+                  Admin:{" "}
+                  <span className="font-medium text-slate-700">admin</span> /
+                  admin123
                 </p>
                 <p>
-                  Usuario: <span className="font-medium text-slate-700">gbamba</span> / bamba
+                  Usuario:{" "}
+                  <span className="font-medium text-slate-700">gbamba</span> /
+                  bamba
                 </p>
               </div>
             </div>
           </section>
         </section>
 
-        <footer className="mt-4 flex items-center gap-4 text-xs text-slate-500">
-          <ShieldCheck className="h-4 w-4 text-slate-400" />
-          <span>Sistema privado de uso interno</span>
-          <span className="h-1 w-1 rounded-full bg-[#12b8c8]" />
+        <footer className="flex w-full flex-wrap items-center justify-center gap-x-4 gap-y-2 px-2 text-center text-xs text-slate-500">
+          <span className="inline-flex items-center gap-2">
+            <ShieldCheck className="h-4 w-4 text-slate-400" />
+            Sistema privado de uso interno
+          </span>
+          <span className="hidden h-1 w-1 rounded-full bg-[#12b8c8] sm:inline-block" />
           <span>
             Desarrollado por{" "}
             <strong className="font-semibold text-[#062f73]">Pantech</strong>

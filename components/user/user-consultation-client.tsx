@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { searchNormativeAction } from "@/app/consulta/actions";
 import type { ChatSearchResponse } from "@/app/consulta/actions";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import type { ComponentType } from "react";
 import {
   Bell,
   ChevronLeft,
@@ -59,7 +60,7 @@ function SidebarButton({
   active,
   collapsed,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   label: string;
   active?: boolean;
   collapsed: boolean;
@@ -165,20 +166,30 @@ function MobileMenu({
   );
 }
 
-function ChatBubble({ message }: { message: ChatMessage }) {
+function ChatBubble({
+  message,
+  registerMessageRef,
+}: {
+  message: ChatMessage;
+  registerMessageRef: (id: number, element: HTMLDivElement | null) => void;
+}) {
   const isUser = message.type === "user";
 
   return (
-    <div className={["flex", isUser ? "justify-end" : "justify-start"].join(" ")}>
+    <div
+      ref={(element) => registerMessageRef(message.id, element)}
+      className={["flex min-w-0", isUser ? "justify-end" : "justify-start"].join(" ")}
+    >
       <div
         className={[
-          "max-w-[88%] rounded-2xl px-4 py-2.5 text-sm leading-6 shadow-sm",
+          "max-w-[92%] rounded-2xl px-4 py-2.5 text-sm leading-6 shadow-sm sm:max-w-[88%]",
+          "min-w-0 overflow-hidden break-words",
           isUser
             ? "bg-[#062f73] text-white"
             : "border border-[#cfe0ff] bg-white text-slate-700",
         ].join(" ")}
       >
-        <p className="whitespace-pre-line">{message.text}</p>
+        <p className="whitespace-pre-line break-words">{message.text}</p>
 
         {message.sources && message.sources.length > 0 ? (
           <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
@@ -189,9 +200,9 @@ function ChatBubble({ message }: { message: ChatMessage }) {
             {message.sources.slice(0, 3).map((source, index) => (
               <div
                 key={`${source.documentTitle}-${index}`}
-                className="rounded-xl bg-slate-50 px-3 py-2"
+                className="min-w-0 rounded-xl bg-slate-50 px-3 py-2"
               >
-                <p className="text-xs font-semibold text-[#061f3d]">
+                <p className="break-words text-xs font-semibold text-[#061f3d]">
                   {source.healthInsuranceName} · {source.documentTitle}
                 </p>
 
@@ -201,7 +212,7 @@ function ChatBubble({ message }: { message: ChatMessage }) {
                     : "Página no identificada"}
                 </p>
 
-                <p className="mt-1 line-clamp-3 text-[11px] leading-4 text-slate-500">
+                <p className="mt-1 line-clamp-3 break-words text-[11px] leading-4 text-slate-500">
                   {source.excerpt}
                 </p>
               </div>
@@ -259,7 +270,7 @@ function HealthInsuranceList({
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder="Buscar obra social..."
-          className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-[#061f3d] outline-none transition placeholder:text-slate-400 focus:border-[#062f73] focus:ring-4 focus:ring-blue-50"
+          className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-base text-[#061f3d] outline-none transition placeholder:text-slate-400 focus:border-[#062f73] focus:ring-4 focus:ring-blue-50 md:text-sm"
         />
       </div>
 
@@ -342,7 +353,7 @@ function NewsList({
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder="Buscar novedad..."
-          className="h-9 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-[#061f3d] outline-none transition placeholder:text-slate-400 focus:border-[#062f73] focus:ring-4 focus:ring-blue-50"
+          className="h-10 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-base text-[#061f3d] outline-none transition placeholder:text-slate-400 focus:border-[#062f73] focus:ring-4 focus:ring-blue-50 md:text-sm"
         />
       </div>
 
@@ -404,20 +415,20 @@ export default function UserConsultationClient({
     },
   ]);
 
-  const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const messageRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
-  function scrollToBottom(behavior: ScrollBehavior = "smooth") {
+  function registerMessageRef(id: number, element: HTMLDivElement | null) {
+    messageRefs.current[id] = element;
+  }
+
+  function scrollToMessage(id: number, block: ScrollLogicalPosition = "start") {
     requestAnimationFrame(() => {
-      chatEndRef.current?.scrollIntoView({
-        behavior,
-        block: "end",
+      messageRefs.current[id]?.scrollIntoView({
+        behavior: "smooth",
+        block,
       });
     });
   }
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, searching]);
 
   const menu = useMemo(
     () => [
@@ -455,7 +466,7 @@ export default function UserConsultationClient({
 
   setQuery("");
   setSearching(true);
-  setTimeout(() => scrollToBottom(), 50);
+  setTimeout(() => scrollToMessage(userMessageId, "end"), 80);
 
   try {
     const result = await searchNormativeAction(value);
@@ -496,6 +507,8 @@ export default function UserConsultationClient({
           : item
       )
     );
+
+    setTimeout(() => scrollToMessage(loadingMessageId, "start"), 120);
   } finally {
     setSearching(false);
   }
@@ -515,6 +528,7 @@ export default function UserConsultationClient({
         },
       ]);
 
+      setTimeout(() => scrollToMessage(messageId, "start"), 80);
       return;
     }
 
@@ -522,16 +536,16 @@ export default function UserConsultationClient({
   }
 
   return (
-    <main className="min-h-screen bg-[#f3f7fb] text-[#061f3d]">
+    <main className="min-h-dvh w-full overflow-x-hidden bg-[#f3f7fb] text-[#061f3d]">
       <MobileMenu
         open={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
       />
 
-      <div className="flex min-h-screen">
+      <div className="flex min-h-dvh w-full max-w-full overflow-x-hidden">
         <aside
           className={[
-            "sticky top-0 hidden h-screen shrink-0 overflow-y-auto border-r border-slate-200 bg-white px-3 py-4 lg:block",
+            "sticky top-0 hidden h-dvh shrink-0 overflow-y-auto border-r border-slate-200 bg-white px-3 py-4 lg:block",
             collapsed ? "w-[72px]" : "w-[230px]",
           ].join(" ")}
         >
@@ -637,7 +651,7 @@ export default function UserConsultationClient({
           </Link>
         </div>
 
-        <section className="min-w-0 flex-1 overflow-hidden px-3 pb-3 pt-20 sm:px-4 lg:h-screen lg:px-4 lg:py-3">
+        <section className="min-w-0 flex-1 overflow-x-hidden px-3 pb-3 pt-20 sm:px-4 lg:h-dvh lg:px-4 lg:py-3">
           <header className="mb-2 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
             <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
               <div>
@@ -656,8 +670,8 @@ export default function UserConsultationClient({
             </div>
           </header>
 
-          <section className="grid min-w-0 gap-3 xl:h-[calc(100vh-105px)] xl:grid-cols-[minmax(0,1fr)_300px_300px] xl:items-start">
-            <article className="flex h-[560px] min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border border-[#d8e7ff] bg-[#f8fbff] shadow-sm xl:h-full">
+          <section className="grid min-w-0 gap-3 xl:h-[calc(100dvh-105px)] xl:grid-cols-[minmax(0,1fr)_300px_300px] xl:items-start">
+            <article className="flex h-[calc(100dvh-160px)] min-h-[520px] min-w-0 flex-col overflow-hidden rounded-xl border border-[#d8e7ff] bg-[#f8fbff] shadow-sm xl:h-full xl:min-h-0">
               <div className="border-b border-[#d8e7ff] bg-white px-4 py-2.5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -675,11 +689,14 @@ export default function UserConsultationClient({
                 </div>
               </div>
 
-              <div className="flex-1 space-y-3 overflow-y-auto bg-[#eef6ff] px-4 py-4">
+              <div className="min-w-0 flex-1 space-y-3 overflow-y-auto overflow-x-hidden bg-[#eef6ff] px-3 py-4 sm:px-4">
                 {messages.map((message) => (
-                  <ChatBubble key={message.id} message={message} />
+                  <ChatBubble
+                    key={message.id}
+                    message={message}
+                    registerMessageRef={registerMessageRef}
+                  />
                 ))}
-                <div ref={chatEndRef} />
               </div>
 
               <div className="border-t border-[#d8e7ff] bg-white p-2.5">
@@ -688,9 +705,9 @@ export default function UserConsultationClient({
                     event.preventDefault();
                     handleSend();
                   }}
-                  className="flex gap-2"
+                  className="flex min-w-0 gap-2"
                 >
-                  <div className="relative flex-1">
+                  <div className="relative min-w-0 flex-1">
                     <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
 
                     <input
@@ -698,14 +715,14 @@ export default function UserConsultationClient({
                       onChange={(event) => setQuery(event.target.value)}
                       disabled={searching}
                       placeholder="Escribí tu consulta..."
-                      className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-sm text-[#061f3d] outline-none transition placeholder:text-slate-400 focus:border-[#062f73] focus:ring-4 focus:ring-blue-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400"
+                      className="h-12 w-full rounded-xl border border-slate-200 bg-white pl-9 pr-3 text-base text-[#061f3d] outline-none transition placeholder:text-slate-400 focus:border-[#062f73] focus:ring-4 focus:ring-blue-50 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 md:h-11 md:text-sm"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={searching || query.trim().length === 0}
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#062f73] text-white transition hover:bg-[#05275f] disabled:cursor-not-allowed disabled:bg-slate-300"
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#062f73] text-white transition hover:bg-[#05275f] disabled:cursor-not-allowed disabled:bg-slate-300 md:h-11 md:w-11"
                   >
                     <Send className="h-4 w-4" />
                   </button>
