@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SignJWT, jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-import type { UserRole } from "@prisma/client";
+
+export type AppUserRole = "ADMIN" | "USER";
 
 const SESSION_COOKIE_NAME = "farmabot_session";
 
@@ -20,7 +21,7 @@ export type SessionUser = {
   id: string;
   name: string;
   email: string;
-  role: UserRole;
+  role: AppUserRole;
   branchId: string | null;
 };
 
@@ -61,11 +62,13 @@ export async function getSessionUser(): Promise<SessionUser | null> {
       return null;
     }
 
+    const role = String(payload.role) === "ADMIN" ? "ADMIN" : "USER";
+
     return {
       id: String(payload.id),
       name: String(payload.name ?? ""),
       email: String(payload.email),
-      role: payload.role as UserRole,
+      role,
       branchId: payload.branchId ? String(payload.branchId) : null,
     };
   } catch {
@@ -110,6 +113,5 @@ export async function requireAdmin() {
 
 export async function logout() {
   const cookieStore = await cookies();
-
   cookieStore.delete(SESSION_COOKIE_NAME);
 }

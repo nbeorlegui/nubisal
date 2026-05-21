@@ -612,8 +612,7 @@ function extractBestExcerpt(
     }
   }
 
-  const best = candidates.sort((a, b) => b.score - a.score)[0];
-
+const best = candidates.sort((a, b) => b.score - a.score)[0];
   if (!best || best.score <= 0) {
     const fallback = blocks.find((block) => !isUselessShortExcerpt(block)) ?? content.slice(0, 900);
 
@@ -783,7 +782,7 @@ async function detectHealthInsurance(question: string) {
 }
 
 function buildAnswer(scoredChunks: ScoredChunk[], detectedHealthInsurance?: { name: string } | null) {
-  const usefulChunks = scoredChunks.filter((chunk) => !isUselessShortExcerpt(chunk.bestExcerpt));
+  const usefulChunks = scoredChunks.filter((chunk: ScoredChunk) => !isUselessShortExcerpt(chunk.bestExcerpt));
   const best = usefulChunks[0] ?? scoredChunks[0];
 
   if (!best) {
@@ -905,7 +904,7 @@ export async function searchNormativeAction(
   });
 
   const scoredChunks: ScoredChunk[] = chunks
-    .map((chunk) => {
+    .map((chunk: any) => {
       const normalizedChunk: ChunkForSearch = {
         ...chunk,
         keywords: Array.isArray(chunk.keywords) ? chunk.keywords.map(String) : [],
@@ -924,9 +923,9 @@ export async function searchNormativeAction(
         ...result,
       };
     })
-    .filter((chunk) => chunk.score > 0)
-    .filter((chunk) => !isUselessShortExcerpt(chunk.bestExcerpt) || chunk.score >= 120)
-    .sort((a, b) => b.score - a.score)
+    .filter((chunk: ScoredChunk) => chunk.score > 0)
+    .filter((chunk: ScoredChunk) => !isUselessShortExcerpt(chunk.bestExcerpt) || chunk.score >= 120)
+    .sort((a: ScoredChunk, b: ScoredChunk) => b.score - a.score)
     .slice(0, 8);
 
   if (scoredChunks.length === 0) {
@@ -940,7 +939,7 @@ export async function searchNormativeAction(
     };
   }
 
-  const sources: SearchSource[] = scoredChunks.slice(0, 4).map((chunk) => ({
+  const sources: SearchSource[] = scoredChunks.slice(0, 4).map((chunk: ScoredChunk) => ({
     documentTitle: chunk.document.title,
     healthInsuranceName: chunk.healthInsurance.name,
     pageNumber: chunk.page?.pageNumber ?? null,
@@ -949,7 +948,7 @@ export async function searchNormativeAction(
   }));
 
   await prisma.queryResult.createMany({
-    data: scoredChunks.slice(0, 6).map((chunk) => ({
+    data: scoredChunks.slice(0, 6).map((chunk: ScoredChunk) => ({
       queryId: query.id,
       documentId: chunk.documentId,
       chunkId: chunk.id,

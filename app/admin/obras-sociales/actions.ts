@@ -262,7 +262,7 @@ export async function createHealthInsuranceAction(formData: FormData) {
       },
     });
 
-    const documentIds = documents.map((document) => document.id);
+    const documentIds = documents.map((document: any) => document.id);
 
     if (documentIds.length > 0) {
       await prisma.queryResult.deleteMany({
@@ -537,7 +537,7 @@ export async function deleteHealthInsuranceAction(formData: FormData) {
     throw new Error("La obra social no existe.");
   }
 
-  const documentIds = healthInsurance.documents.map((document) => document.id);
+  const documentIds = healthInsurance.documents.map((document: any) => document.id);
 
   if (documentIds.length > 0) {
     await prisma.queryResult.deleteMany({
@@ -588,7 +588,7 @@ export async function deleteHealthInsuranceAction(formData: FormData) {
     },
   });
 
-  for (const document of healthInsurance.documents) {
+  for (const document of healthInsurance.documents as any[]) {
     await deleteStoredFile(document.filePath);
   }
 

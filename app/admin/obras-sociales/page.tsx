@@ -31,9 +31,9 @@ export default async function AdminHealthInsurancesPage() {
     },
   });
 
-  const normalizedItems = healthInsurances.map((item) => ({
+  const normalizedItems = healthInsurances.map((item: any) => ({
     ...item,
-    documents: item.documents.map((document) => ({
+    documents: item.documents.map((document: any) => ({
       ...document,
       createdAt: document.createdAt.toISOString(),
     })),

@@ -2,7 +2,6 @@
 
 import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
-import { UserRole } from "@prisma/client";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -110,7 +109,7 @@ export async function createUserAction(formData: FormData) {
   const username = cleanValue(formData.get("username"));
   const email = cleanValue(formData.get("email"));
   const password = cleanValue(formData.get("password"));
-  const role = cleanValue(formData.get("role")) as UserRole;
+  const role = cleanValue(formData.get("role")) as "ADMIN" | "USER";
   const branchId = cleanValue(formData.get("branchId"));
   const isActive = cleanValue(formData.get("isActive")) !== "false";
 
@@ -148,7 +147,7 @@ export async function updateUserAction(formData: FormData) {
   const username = cleanValue(formData.get("username"));
   const email = cleanValue(formData.get("email"));
   const password = cleanValue(formData.get("password"));
-  const role = cleanValue(formData.get("role")) as UserRole;
+  const role = cleanValue(formData.get("role")) as "ADMIN" | "USER";
   const branchId = cleanValue(formData.get("branchId"));
   const isActive = cleanValue(formData.get("isActive")) === "true";
 
@@ -168,7 +167,7 @@ export async function updateUserAction(formData: FormData) {
     name: string;
     username: string;
     email: string;
-    role: UserRole;
+    role: "ADMIN" | "USER";
     branchId: string | null;
     isActive: boolean;
     passwordHash?: string;
