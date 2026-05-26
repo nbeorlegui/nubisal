@@ -8,6 +8,10 @@ import {
   type ReportsData,
 } from "@/lib/reports";
 
+type PageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
 type QueryForReport = {
   id: string;
   originalText: string;
@@ -18,6 +22,69 @@ type QueryForReport = {
   branch: { name: string } | null;
   detectedHealthInsurance: { name: string } | null;
 };
+
+function getSingleParam(
+  params: Record<string, string | string[] | undefined>,
+  key: string
+) {
+  const value = params[key];
+
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+
+  return value;
+}
+
+function toDateInputValue(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function parseDateParam(value: string | undefined, fallback: Date) {
+  if (!value) return fallback;
+
+  const date = new Date(`${value}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return fallback;
+  }
+
+  return date;
+}
+
+function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+function getDateRange(params: Record<string, string | string[] | undefined>) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const defaultStart = addDays(today, -13);
+  const defaultEnd = today;
+
+  let start = parseDateParam(getSingleParam(params, "startDate"), defaultStart);
+  let end = parseDateParam(getSingleParam(params, "endDate"), defaultEnd);
+
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  if (start > end) {
+    const previousStart = start;
+    start = end;
+    end = previousStart;
+  }
+
+  return {
+    start,
+    end,
+    endExclusive: addDays(end, 1),
+    startInput: toDateInputValue(start),
+    endInput: toDateInputValue(end),
+  };
+}
 
 function groupCount<T>(items: T[], getKey: (item: T) => string) {
   const map = new Map<string, number>();
@@ -32,29 +99,33 @@ function groupCount<T>(items: T[], getKey: (item: T) => string) {
     .sort((a, b) => b.value - a.value);
 }
 
-function getLastDays(daysCount: number) {
-  return Array.from({ length: daysCount }).map((_, index) => {
-    const date = new Date();
-    date.setHours(0, 0, 0, 0);
-    date.setDate(date.getDate() - (daysCount - index - 1));
+function getDaysBetween(start: Date, end: Date) {
+  const days: { key: string; name: string }[] = [];
+  const cursor = new Date(start);
+  let guard = 0;
 
-    return {
-      key: date.toISOString().slice(0, 10),
-      name: date.toLocaleDateString("es-AR", {
+  while (cursor <= end && guard < 62) {
+    days.push({
+      key: cursor.toISOString().slice(0, 10),
+      name: cursor.toLocaleDateString("es-AR", {
         weekday: "short",
         day: "2-digit",
       }),
-    };
-  });
+    });
+
+    cursor.setDate(cursor.getDate() + 1);
+    guard += 1;
+  }
+
+  return days;
 }
 
-export default async function AdminReportsPage() {
+export default async function AdminReportsPage({ searchParams }: PageProps) {
   await requireAdmin();
 
-  const lastDays = getLastDays(14);
-  const firstDay = new Date();
-  firstDay.setHours(0, 0, 0, 0);
-  firstDay.setDate(firstDay.getDate() - 13);
+  const params = await Promise.resolve(searchParams ?? {});
+  const range = getDateRange(params);
+  const days = getDaysBetween(range.start, range.end);
 
   const [
     queries,
@@ -66,13 +137,14 @@ export default async function AdminReportsPage() {
     prisma.query.findMany({
       where: {
         createdAt: {
-          gte: firstDay,
+          gte: range.start,
+          lt: range.endExclusive,
         },
       },
       orderBy: {
         createdAt: "desc",
       },
-      take: 100,
+      take: 250,
       include: {
         user: {
           select: {
@@ -121,7 +193,7 @@ export default async function AdminReportsPage() {
   const responseRate =
     totalQueries > 0 ? Math.round((withResponse / totalQueries) * 100) : 0;
 
-  const queriesByDay: ChartDatum[] = lastDays.map((day) => ({
+  const queriesByDay: ChartDatum[] = days.map((day) => ({
     name: day.name,
     value: typedQueries.filter(
       (query) => query.createdAt.toISOString().slice(0, 10) === day.key
@@ -133,7 +205,7 @@ export default async function AdminReportsPage() {
       {
         label: "Consultas",
         value: String(totalQueries),
-        detail: "Consultas registradas en los últimos 14 días.",
+        detail: "Consultas registradas en el rango seleccionado.",
       },
       {
         label: "Resolución",
@@ -194,7 +266,11 @@ export default async function AdminReportsPage() {
 
   return (
     <AdminShell>
-      <AdminReportsClient data={data} />
+      <AdminReportsClient
+        data={data}
+        initialStartDate={range.startInput}
+        initialEndDate={range.endInput}
+      />
     </AdminShell>
   );
 }

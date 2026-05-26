@@ -1,7 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { BarChart3, CheckCircle2, Download, FileText, SearchCheck } from "lucide-react";
+import {
+  BarChart3,
+  CalendarDays,
+  CheckCircle2,
+  Download,
+  FileText,
+} from "lucide-react";
 import type { ChartDatum, ReportsData } from "@/lib/reports";
 
 const PAGE_SIZE = 10;
@@ -75,11 +81,20 @@ function SimpleBarChart({ data }: { data: ChartDatum[] }) {
   return (
     <div className="space-y-2">
       {data.map((item) => {
-        const width = Math.max((item.value / maxValue) * 100, item.value > 0 ? 8 : 0);
+        const width = Math.max(
+          (item.value / maxValue) * 100,
+          item.value > 0 ? 8 : 0
+        );
 
         return (
-          <div key={item.name} className="grid grid-cols-[105px_1fr_36px] items-center gap-2">
-            <p className="truncate text-[11px] font-semibold text-slate-500" title={item.name}>
+          <div
+            key={item.name}
+            className="grid grid-cols-[105px_1fr_36px] items-center gap-2"
+          >
+            <p
+              className="truncate text-[11px] font-semibold text-slate-500"
+              title={item.name}
+            >
               {item.name}
             </p>
             <div className="h-7 overflow-hidden rounded-full bg-slate-100">
@@ -108,10 +123,16 @@ function DailyColumns({ data }: { data: ChartDatum[] }) {
   return (
     <div className="flex h-[190px] items-end gap-1 rounded-xl border border-slate-100 bg-slate-50 px-3 pb-3 pt-5">
       {data.map((item) => {
-        const height = Math.max((item.value / maxValue) * 140, item.value > 0 ? 12 : 2);
+        const height = Math.max(
+          (item.value / maxValue) * 140,
+          item.value > 0 ? 12 : 2
+        );
 
         return (
-          <div key={item.name} className="flex min-w-0 flex-1 flex-col items-center gap-2">
+          <div
+            key={item.name}
+            className="flex min-w-0 flex-1 flex-col items-center gap-2"
+          >
             <div className="flex h-[145px] w-full items-end justify-center">
               <div
                 className="w-full max-w-[22px] rounded-t-lg bg-[#062f73]"
@@ -131,7 +152,8 @@ function DailyColumns({ data }: { data: ChartDatum[] }) {
 
 function ResponseSummary({ data }: { data: ChartDatum[] }) {
   const total = data.reduce((acc, item) => acc + item.value, 0);
-  const withResponse = data.find((item) => item.name.toLowerCase().includes("con"))?.value ?? 0;
+  const withResponse =
+    data.find((item) => item.name.toLowerCase().includes("con"))?.value ?? 0;
   const withoutResponse = Math.max(total - withResponse, 0);
   const percentage = total > 0 ? Math.round((withResponse / total) * 100) : 0;
 
@@ -144,13 +166,18 @@ function ResponseSummary({ data }: { data: ChartDatum[] }) {
           <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-slate-400">
             Resueltas
           </p>
-          <p className="mt-1 text-3xl font-black text-[#061f3d]">{percentage}%</p>
+          <p className="mt-1 text-3xl font-black text-[#061f3d]">
+            {percentage}%
+          </p>
         </div>
         <CheckCircle2 className="h-8 w-8 text-emerald-500" />
       </div>
 
       <div className="mt-4 h-4 overflow-hidden rounded-full bg-red-100">
-        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${percentage}%` }} />
+        <div
+          className="h-full rounded-full bg-emerald-500"
+          style={{ width: `${percentage}%` }}
+        />
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
@@ -167,11 +194,24 @@ function ResponseSummary({ data }: { data: ChartDatum[] }) {
   );
 }
 
-export function AdminReportsClient({ data }: { data: ReportsData }) {
+export function AdminReportsClient({
+  data,
+  initialStartDate,
+  initialEndDate,
+}: {
+  data: ReportsData;
+  initialStartDate: string;
+  initialEndDate: string;
+}) {
   const [page, setPage] = useState(1);
 
   const compactKpis = data.kpis.slice(0, 4);
   const totalPages = Math.max(Math.ceil(data.latestQueries.length / PAGE_SIZE), 1);
+
+  const queryString = new URLSearchParams({
+    startDate: initialStartDate,
+    endDate: initialEndDate,
+  }).toString();
 
   const paginatedQueries = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
@@ -185,7 +225,7 @@ export function AdminReportsClient({ data }: { data: ReportsData }) {
   return (
     <div className="space-y-4">
       <section className="rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#12b8c8]">
               Administración
@@ -198,19 +238,57 @@ export function AdminReportsClient({ data }: { data: ReportsData }) {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <a
-              href="/admin/reportes/export-excel"
-              className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-black text-[#062f73] hover:bg-slate-50"
-            >
-              <Download className="h-4 w-4" /> Excel
-            </a>
-            <a
-              href="/admin/reportes/export-pdf"
-              className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#062f73] px-3 text-xs font-black text-white hover:bg-[#05275f]"
-            >
-              <FileText className="h-4 w-4" /> PDF
-            </a>
+          <div className="flex flex-col gap-2 xl:items-end">
+            <form method="GET" className="flex flex-wrap items-end gap-2">
+              <label className="block">
+                <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
+                  Desde
+                </span>
+                <input
+                  type="date"
+                  name="startDate"
+                  defaultValue={initialStartDate}
+                  className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-[#061f3d] outline-none focus:border-[#062f73] focus:ring-4 focus:ring-blue-50"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1 block text-[10px] font-black uppercase tracking-[0.14em] text-slate-400">
+                  Hasta
+                </span>
+                <input
+                  type="date"
+                  name="endDate"
+                  defaultValue={initialEndDate}
+                  className="h-9 rounded-lg border border-slate-200 bg-white px-3 text-sm font-semibold text-[#061f3d] outline-none focus:border-[#062f73] focus:ring-4 focus:ring-blue-50"
+                />
+              </label>
+
+              <button
+                type="submit"
+                className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#062f73] px-3 text-xs font-black text-white hover:bg-[#05275f]"
+              >
+                <CalendarDays className="h-4 w-4" />
+                Filtrar
+              </button>
+            </form>
+
+            <div className="flex flex-wrap gap-2">
+              <a
+                href={`/admin/reportes/export-excel?${queryString}`}
+                className="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 text-xs font-black text-[#062f73] hover:bg-slate-50"
+              >
+                <Download className="h-4 w-4" /> Excel
+              </a>
+              <a
+                href={`/admin/reportes/export-pdf?${queryString}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex h-9 items-center gap-2 rounded-lg bg-[#062f73] px-3 text-xs font-black text-white hover:bg-[#05275f]"
+              >
+                <FileText className="h-4 w-4" /> PDF
+              </a>
+            </div>
           </div>
         </div>
       </section>
@@ -222,7 +300,7 @@ export function AdminReportsClient({ data }: { data: ReportsData }) {
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1fr_360px]">
-        <ChartCard title="Consultas por día" subtitle="Últimos 14 días">
+        <ChartCard title="Consultas por día" subtitle="Según el rango seleccionado">
           <DailyColumns data={data.queriesByDay} />
         </ChartCard>
 
@@ -313,7 +391,7 @@ export function AdminReportsClient({ data }: { data: ReportsData }) {
               {paginatedQueries.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-slate-400">
-                    Todavía no hay consultas registradas.
+                    Todavía no hay consultas registradas para el rango seleccionado.
                   </td>
                 </tr>
               ) : null}
